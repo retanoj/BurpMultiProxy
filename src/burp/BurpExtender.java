@@ -239,17 +239,14 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 	@Override
 	public void processHttpMessage(int toolFlag, boolean messageIsRequest,
 			IHttpRequestResponse messageInfo) {
-		if(messageIsRequest){
-			IHttpService hs = messageInfo.getHttpService();
-			if(jTableModel.getRowCount() > 0){
-				int num = (int)(Math.random() * jTableModel.getRowCount());
-				if(jTableModel.getValueAt(num, 0).toString().trim().length() != 0 &&
-					jTableModel.getValueAt(num, 1).toString().trim().length() != 0){
-						messageInfo.setHttpService(
-								helpers.buildHttpService(jTableModel.getValueAt(num, 0).toString(),
-										Integer.parseInt(jTableModel.getValueAt(num, 1).toString()),
-										hs.getProtocol() ) );
-				}
+		if(messageIsRequest && jTableModel.getRowCount() > 0){
+			int num = (int)(Math.random() * jTableModel.getRowCount());
+			if(jTableModel.getValueAt(num, 0).toString().trim().length() != 0 &&
+				jTableModel.getValueAt(num, 1).toString().trim().length() != 0){
+					messageInfo.setHttpService(
+							helpers.buildHttpService(jTableModel.getValueAt(num, 0).toString(),
+									Integer.parseInt(jTableModel.getValueAt(num, 1).toString()),
+									messageInfo.getHttpService().getProtocol() ) );
 			}
 		}
 	}
