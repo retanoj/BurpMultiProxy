@@ -19,3 +19,8 @@ BurpMultiProxy
 >         GET http://1111.ip138.com/ic.asp HTTP/1.1
 >         Host: 1111.ip138.com
 >         ......
+
+> Burpsuite run.bat
+> 
+>     @echo off
+>     start javaw -XX:MaxPermSize=1G -jar BurpLoader.jar
