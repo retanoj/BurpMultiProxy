@@ -96,10 +96,7 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 			public void actionPerformed(ActionEvent e){
 				if (jTable.isEditing()) 
 				    jTable.getCellEditor().stopCellEditing();
-				//jTableModel.setRowCount(0);
-				if(jTable.getRowCount() > 0){
-					System.out.println(jTable.getIndex(MODE));
-				}
+				jTableModel.setRowCount(0);
 			}
 		});
 		VerticalRight.add(clean);
