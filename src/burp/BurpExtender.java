@@ -39,10 +39,12 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 	void createPanel(){
 		jPanel = new JPanel();
 		
-		Box Vertical_in_h1 = Box.createVerticalBox();
-		Box Horizonal1 = Box.createHorizontalBox();
-		Box Horizonal2 = Box.createHorizontalBox();
-		Box Vertical = Box.createVerticalBox();
+		Box VerticalLeft = Box.createVerticalBox();
+		Box VerticalRight = Box.createVerticalBox();
+		
+		Box HorizonalLayer2 = Box.createHorizontalBox();
+		Box HorizonalLayer3 = Box.createHorizontalBox();		
+		Box HorizonalTop = Box.createHorizontalBox();
 		
 		String[] columnNames = {"IP", "Port"};
 		Object[][] o = {{"",""}};
@@ -53,57 +55,61 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 		jTable.setBackground(Color.LIGHT_GRAY);
 		jTableModel = (DefaultTableModel) jTable.getModel();
 		
+		VerticalLeft.add(Box.createVerticalStrut(30));
+		VerticalRight.add(Box.createVerticalStrut(45));
+		
 		JScrollPane jScrollPane = new JScrollPane(jTable);
-		Horizonal1.add(jScrollPane);
+		VerticalLeft.add(jScrollPane);
 		
 		JButton load = new JButton(" Load ");
 		load.addActionListener(new loadButton(jTable));
-		Vertical_in_h1.add(load);
+		VerticalRight.add(load);
 		
-		Vertical_in_h1.add(Box.createVerticalStrut(20));
+		VerticalRight.add(Box.createVerticalStrut(20));
 		
 		JButton delete = new JButton("Delete");
 		delete.addActionListener(new deleteButton(jTable));
-		Vertical_in_h1.add(delete);
+		VerticalRight.add(delete);
 		
-		Vertical_in_h1.add(Box.createVerticalStrut(20));
+		VerticalRight.add(Box.createVerticalStrut(20));
 		
 		JButton save = new JButton(" Save ");
 		save.addActionListener(new saveButton(jTable));
-		Vertical_in_h1.add(save);
+		VerticalRight.add(save);
 		
-		Vertical_in_h1.add(Box.createVerticalStrut(20));
+		VerticalRight.add(Box.createVerticalStrut(20));
 		
 		JButton clean = new JButton(" Clean");
 		clean.addActionListener(new cleanButton(jTable));
-		Vertical_in_h1.add(clean);
+		VerticalRight.add(clean);
 		
-		Horizonal1.add(Box.createHorizontalStrut(15));
-		Horizonal1.add(Vertical_in_h1);
 		
 		JTextField jIpText = new JTextField();
-		Horizonal2.add(new JLabel("IP:"));
-		Horizonal2.add(Box.createHorizontalStrut(5));
-		Horizonal2.add(jIpText);
+		HorizonalLayer2.add(new JLabel("IP:"));
+		HorizonalLayer2.add(Box.createHorizontalStrut(5));
+		HorizonalLayer2.add(jIpText);
 		
-		Horizonal2.add(Box.createHorizontalStrut(5));
+		HorizonalLayer2.add(Box.createHorizontalStrut(5));
 		
 		JTextField jPortText = new JTextField();	
-		Horizonal2.add(new JLabel("Port:"));
-		Horizonal2.add(Box.createHorizontalStrut(5));
-		Horizonal2.add(jPortText);
+		HorizonalLayer2.add(new JLabel("Port:"));
+		HorizonalLayer2.add(Box.createHorizontalStrut(5));
+		HorizonalLayer2.add(jPortText);
 		
-		Horizonal2.add(Box.createHorizontalStrut(15));
+		VerticalLeft.add(Box.createVerticalStrut(5));
+		VerticalLeft.add(HorizonalLayer2);
 		
 		JButton add = new JButton("  Add  ");
 		add.addActionListener(new addButton(jIpText, jPortText, jTable));
-		Horizonal2.add(add);
+		VerticalRight.add(Box.createVerticalStrut(40));
+		VerticalRight.add(add);
 		
-		Vertical.add(Box.createVerticalStrut(30));
-		Vertical.add(Horizonal1);
-		Vertical.add(Box.createVerticalStrut(10));
-		Vertical.add(Horizonal2);
-		jPanel.add(Vertical);
+		
+		HorizonalTop.add(VerticalLeft);
+		HorizonalTop.add(Box.createHorizontalStrut(30));
+		HorizonalTop.add(VerticalRight);
+		
+		jPanel.add(HorizonalTop);
 		
 	}
 	
@@ -118,6 +124,7 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 		public void actionPerformed(ActionEvent event) {
 			if (jTable.isEditing()) 
 			    jTable.getCellEditor().stopCellEditing();
+			
 			jTableModel.setRowCount(0);
 		}
 		
@@ -180,6 +187,7 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 							w.write(s);
 					}
 					w.close();
+					JOptionPane.showMessageDialog(null, "Saved done.", "Save",JOptionPane.INFORMATION_MESSAGE);
 				}catch(Exception e) {
 					e.printStackTrace();
 				}
