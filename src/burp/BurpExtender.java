@@ -18,7 +18,11 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
-	
+	/*
+	 * BurpSuite 插件
+	 * 可以为HTTP请求自动添加HTTP代理
+	 * 代理列表文件格式为每行ip:port 
+	 */
 	IExtensionHelpers helpers;
 	IBurpExtenderCallbacks callbacks;
 	JPanel jPanel;
@@ -41,13 +45,18 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 	void createPanel(){
 		jPanel = new JPanel();
 		
-		Box VerticalLeft = Box.createVerticalBox();
-		Box VerticalRight = Box.createVerticalBox();
-		Box HorizonalLayer2 = Box.createHorizontalBox();
-		Box HorizonalLayer3 = Box.createHorizontalBox();		
+		/* 总体水平布局 */
 		Box HorizonalTop = Box.createHorizontalBox();
+		/* 左垂直 */
+		Box VerticalLeft = Box.createVerticalBox();
+		/* 右垂直 */
+		Box VerticalRight = Box.createVerticalBox();
+		/* 左侧第二层 */
+		Box HorizonalLayer2 = Box.createHorizontalBox();
+		/* 左侧第三层 */
+		Box HorizonalLayer3 = Box.createHorizontalBox();		
 		
-		/* 左侧添加Table */
+		/* 左侧Table（第一层） */
 		String[] columnNames = {"IP", "Port"};
 		Object[][] o = {{"",""}};
 		jTable = new JTableX(new DefaultTableModel(o, columnNames));
@@ -56,21 +65,15 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 		jTable.getColumnModel().getColumn(1).setPreferredWidth(100);
 		jTable.setBackground(Color.LIGHT_GRAY);
 		jTableModel = (DefaultTableModel) jTable.getModel();
-		
-		
 		JScrollPane jScrollPane = new JScrollPane(jTable);
+		
 		VerticalLeft.add(Box.createVerticalStrut(30));
 		VerticalLeft.add(jScrollPane);
 		
 		/* 右侧添加按钮 */
 		JButton load = new JButton(" Load ");
-		load.addActionListener(new loadButton(jTable));
-		VerticalRight.add(Box.createVerticalStrut(45));
-		VerticalRight.add(load);
-		
-		load.setVerticalTextPosition(SwingConstants.TOP);
-		
-		VerticalRight.add(Box.createVerticalStrut(20));
+		load.setBounds(0,0,300,50);
+		load.addActionListener(new loadButton(jTable));		
 		
 		JButton delete = new JButton("Delete");
 		delete.addActionListener(new ActionListener(){
@@ -81,16 +84,10 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 				}
 			}
 		});
-		VerticalRight.add(delete);
-		
-		VerticalRight.add(Box.createVerticalStrut(20));
-		
+
 		JButton save = new JButton(" Save ");
 		save.addActionListener(new saveButton(jTable));
-		VerticalRight.add(save);
-		
-		VerticalRight.add(Box.createVerticalStrut(20));
-		
+				
 		JButton clean = new JButton(" Clean");
 		clean.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
@@ -99,7 +96,16 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 				jTableModel.setRowCount(0);
 			}
 		});
+		
+		VerticalRight.add(Box.createVerticalStrut(45));
+		VerticalRight.add(load);
+		VerticalRight.add(Box.createVerticalStrut(20));
+		VerticalRight.add(delete);
+		VerticalRight.add(Box.createVerticalStrut(20));
+		VerticalRight.add(save);
+		VerticalRight.add(Box.createVerticalStrut(20));
 		VerticalRight.add(clean);
+
 		
 		/* 左侧第二层添加ip-port输入框 */
 		JTextField jIpText = new JTextField();
@@ -151,7 +157,6 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 		HorizonalTop.add(VerticalRight);
 		
 		jPanel.add(HorizonalTop);
-		
 	}
 	
 	class addButton implements ActionListener{
