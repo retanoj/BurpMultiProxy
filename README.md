@@ -12,13 +12,13 @@ BurpMultiProxy
 > 
 >         GET /ic.asp HTTP/1.1
 >         Host: 1111.ip138.com
->         ......
+>         Connection: .........
 >     
 >     修改为 
 >
 >         GET http://1111.ip138.com/ic.asp HTTP/1.1
 >         Host: 1111.ip138.com
->         ......
+>         Proxy-Connection: .........
 
 > Burpsuite run.bat
 > 
