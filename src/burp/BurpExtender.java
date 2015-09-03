@@ -173,9 +173,9 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			String[] _ip = {"",""};
-			_ip[0] = jIpText.getText();
-			_ip[1] = jPortText.getText();
-			if(_ip[0].trim().length() != 0 && _ip[1].trim().length() != 0)
+			_ip[0] = jIpText.getText().trim();
+			_ip[1] = jPortText.getText().trim();
+			if(_ip[0].length() != 0 && _ip[1].length() != 0)
 				jTableModel.addRow(_ip);
 		}
 		
@@ -211,6 +211,7 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 		}
 		
 	}
+	
 	class loadButton implements ActionListener{
 		JTableX jTable;
 		
@@ -260,16 +261,21 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 	}
 
 	@Override
-	public void processHttpMessage(int toolFlag, boolean messageIsRequest,
-			IHttpRequestResponse messageInfo) {
+	public void processHttpMessage(
+		int toolFlag, 
+		boolean messageIsRequest,
+		IHttpRequestResponse messageInfo) {
+		
 		if(messageIsRequest && jTableModel.getRowCount() > 0){
 			int num = jTable.getIndex(MODE);
 			if(jTableModel.getValueAt(num, 0).toString().trim().length() != 0 &&
-				jTableModel.getValueAt(num, 1).toString().trim().length() != 0){
+			   jTableModel.getValueAt(num, 1).toString().trim().length() != 0){
 					messageInfo.setHttpService(
-							helpers.buildHttpService(jTableModel.getValueAt(num, 0).toString(),
-									Integer.parseInt(jTableModel.getValueAt(num, 1).toString()),
-									messageInfo.getHttpService().getProtocol() ) );
+						helpers.buildHttpService(jTableModel.getValueAt(num, 0).toString().trim(),
+												 Integer.parseInt(jTableModel.getValueAt(num, 1).toString().trim()),
+												 messageInfo.getHttpService().getProtocol() 
+												) 
+					);
 			}
 		}
 	}
