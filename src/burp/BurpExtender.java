@@ -6,13 +6,6 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -26,10 +19,9 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 	IExtensionHelpers helpers;
 	IBurpExtenderCallbacks callbacks;
 	JPanel jPanel;
-	JTableX jTable;
-	DefaultTableModel jTableModel;
+	JTable jTable;
 	
-	int MODE = 0;
+	IArrayList proxies;
 	
 	public static void main(String[] args) {
 		BurpExtender b = new BurpExtender();
@@ -59,13 +51,14 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 		/* 左侧Table（第一层） */
 		String[] columnNames = {"IP", "Port"};
 		Object[][] o = {{"",""}};
-		jTable = new JTableX(new DefaultTableModel(o, columnNames));
+		jTable = new JTable(new DefaultTableModel(o, columnNames));
 		jTable.setPreferredScrollableViewportSize(new Dimension(300,200));
 		jTable.getColumnModel().getColumn(0).setPreferredWidth(200);
 		jTable.getColumnModel().getColumn(1).setPreferredWidth(100);
 		jTable.setBackground(Color.LIGHT_GRAY);
-		jTableModel = (DefaultTableModel) jTable.getModel();
 		JScrollPane jScrollPane = new JScrollPane(jTable);
+		
+		proxies = new IArrayList(jTable);
 		
 		VerticalLeft.add(Box.createVerticalStrut(30));
 		VerticalLeft.add(jScrollPane);
@@ -73,29 +66,23 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 		/* 右侧添加按钮 */
 		JButton load = new JButton(" Load ");
 		load.setBounds(0,0,300,50);
-		load.addActionListener(new loadButton());		
+		load.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){	proxies.loadProxy(); }
+		});		
 		
 		JButton delete = new JButton("Delete");
 		delete.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent e) {
-				int[] rmi = jTable.getSelectedRows();
-				for (int i=rmi.length-1; i>=0; i--){
-					System.out.println(rmi[i]);
-					jTableModel.removeRow(rmi[i]);
-				}
-			}
+			public void actionPerformed(ActionEvent e) { proxies.deleteRows(); }
 		});
 
 		JButton save = new JButton(" Save ");
-		save.addActionListener(new saveButton());
+		save.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e) { proxies.saveProxies(); }
+		});
 				
 		JButton clean = new JButton(" Clean");
 		clean.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent e){
-				if (jTable.isEditing()) 
-				    jTable.getCellEditor().stopCellEditing();
-				jTableModel.setRowCount(0);
-			}
+			public void actionPerformed(ActionEvent e){ proxies.DeleteAll(); }
 		});
 		
 		VerticalRight.add(Box.createVerticalStrut(45));
@@ -125,20 +112,20 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 		VerticalLeft.add(HorizonalLayer2);
 		
 		/* 右侧添加输入框对应的Add按钮 */
-		JButton add = new JButton("  Add  ");
-		add.addActionListener(new addButton(jIpText, jPortText));
+		JButton addButton = new JButton("  Add  ");
+		addButton.addActionListener(new addButtonListener(jIpText, jPortText));
 		VerticalRight.add(Box.createVerticalStrut(40));
-		VerticalRight.add(add);
+		VerticalRight.add(addButton);
 		VerticalRight.add(Box.createVerticalGlue());
 		
 		/* 左侧第三层添加MODE单选框 */
 		JRadioButton jRadioButton0 = new JRadioButton("顺序模式", true);
 		jRadioButton0.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent event){ MODE = 0; }
+			public void actionPerformed(ActionEvent event){ proxies.setSerialMode(); }
 		});
 		JRadioButton jRadioButton1 = new JRadioButton("随机模式");
 		jRadioButton1.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent event){ MODE = 1; }
+			public void actionPerformed(ActionEvent event){ proxies.setDiscreteMode(); }
 		});
 		ButtonGroup jBtnGroup=new ButtonGroup();
 		jBtnGroup.add(jRadioButton0);
@@ -160,82 +147,22 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 		jPanel.add(HorizonalTop);
 	}
 	
-	class addButton implements ActionListener{
+	class addButtonListener implements ActionListener{
 		JTextField jIpText;
 		JTextField jPortText;
 		
-		addButton(JTextField jIpText, JTextField jPortText){
+		addButtonListener(JTextField jIpText, JTextField jPortText){
 			this.jIpText = jIpText;
 			this.jPortText = jPortText;
 		}
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			String[] _ip = {"",""};
-			_ip[0] = jIpText.getText().trim();
-			_ip[1] = jPortText.getText().trim();
-			if(_ip[0].length() != 0 && _ip[1].length() != 0)
-				jTableModel.addRow(_ip);
+			proxies.add(jIpText.getText(), Integer.parseInt(jPortText.getText()));
 		}
 		
 	}
 	
-	class saveButton implements ActionListener{
-		
-		@Override
-		public void actionPerformed(ActionEvent event) {
-			JFileChooser dlg = new JFileChooser();
-			dlg.setFileSelectionMode(JFileChooser.FILES_ONLY);
-			if(dlg.showOpenDialog(null) == JFileChooser.APPROVE_OPTION){
-				int rowCount = jTableModel.getRowCount();
-				Writer w;
-				try{
-					w= new OutputStreamWriter(new FileOutputStream(dlg.getSelectedFile()), "UTF-8");
-					for(int i=0; i<rowCount; i++){
-						String s = String.format("%s:%s\n", jTableModel.getValueAt(i,0), jTableModel.getValueAt(i,1));
-						if(!s.trim().equals(":"))
-							w.write(s);
-					}
-					w.close();
-					JOptionPane.showMessageDialog(null, "Saved done.", "Save",JOptionPane.INFORMATION_MESSAGE);
-				}catch(Exception e) {
-					e.printStackTrace();
-				}
-			}
-			
-		}
-		
-	}
-	
-	class loadButton implements ActionListener{
-		
-		@Override
-		public void actionPerformed(ActionEvent event){
-			JFileChooser dlg = new JFileChooser();
-			dlg.setFileSelectionMode(JFileChooser.FILES_ONLY);
-			if(dlg.showOpenDialog(null) == JFileChooser.APPROVE_OPTION){
-				Reader reader;
-				BufferedReader bReader;
-				try {
-					reader = new InputStreamReader(new FileInputStream(dlg.getSelectedFile()), "UTF-8");
-					bReader = new BufferedReader(reader);
-					String[] _ip;
-					while(true){
-						String line = bReader.readLine();
-						if(line == null)
-							break;
-						if(line.trim().length() == 0)
-							continue;
-						_ip = line.split(":");
-						jTableModel.addRow(_ip);
-					}
-					bReader.close();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
 	
 	@Override
 	public void registerExtenderCallbacks(IBurpExtenderCallbacks callbacks) {
@@ -256,16 +183,12 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 		boolean messageIsRequest,
 		IHttpRequestResponse messageInfo) {
 		
-		if(messageIsRequest && jTableModel.getRowCount() > 0){
-			int num = jTable.getIndex(MODE);
-			if(jTableModel.getValueAt(num, 0).toString().trim().length() != 0 &&
-			   jTableModel.getValueAt(num, 1).toString().trim().length() != 0){
-					messageInfo.setHttpService(
-						helpers.buildHttpService(jTableModel.getValueAt(num, 0).toString().trim(),
-												 Integer.parseInt(jTableModel.getValueAt(num, 1).toString().trim()),
-												 messageInfo.getHttpService().getProtocol() ) 
-					);
-			}
+		if(messageIsRequest && proxies.size() > 0){
+			ProxyAddr p = proxies.getProxy();
+			messageInfo.setHttpService(
+				helpers.buildHttpService(p.ip, p.port, messageInfo.getHttpService().getProtocol() ) 
+			);
+	
 		}
 	}
 
@@ -280,29 +203,4 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 	}
 }
 
-
-class JTableX extends JTable{
-	private int MODE_SERIAL = 0;
-	private int MODE_DISCRETE = 1;
-	
-	private int serial = -1;
-	
-	public JTableX(DefaultTableModel defaultTableModel) {
-		super(defaultTableModel);
-	}
-	
-	int getIndex(int MODE){
-		if(MODE == MODE_SERIAL){
-			// MODE_SERIAL
-			return serial = (serial + 1) % this.getRowCount();
-		} 
-		if(MODE == MODE_DISCRETE){
-			// MODE_DISCRETE
-			return (int)(Math.random() * this.getRowCount());
-		}
-		
-		// default return
-		return (int)(Math.random() * this.getRowCount());
-	}	
-}
 
