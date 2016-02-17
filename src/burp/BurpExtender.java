@@ -6,6 +6,7 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.PrintWriter;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -21,7 +22,7 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 	JPanel jPanel;
 	JTable jTable;
 	
-	IArrayList proxies;
+	IProxyList proxies;
 	
 	public static void main(String[] args) {
 		BurpExtender b = new BurpExtender();
@@ -58,7 +59,7 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 		jTable.setBackground(Color.LIGHT_GRAY);
 		JScrollPane jScrollPane = new JScrollPane(jTable);
 		
-		proxies = new IArrayList(jTable);
+		proxies = new IProxyList(jTable);
 		
 		VerticalLeft.add(Box.createVerticalStrut(30));
 		VerticalLeft.add(jScrollPane);
@@ -170,7 +171,7 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 		this.helpers = callbacks.getHelpers();
 		
 		callbacks.setExtensionName("MultiProxy");
-		
+
 		createPanel();
 		
 		callbacks.registerHttpListener(this);
@@ -185,6 +186,7 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 		
 		if(messageIsRequest && proxies.size() > 0){
 			ProxyAddr p = proxies.getProxy();
+			
 			messageInfo.setHttpService(
 				helpers.buildHttpService(p.ip, p.port, messageInfo.getHttpService().getProtocol() ) 
 			);
