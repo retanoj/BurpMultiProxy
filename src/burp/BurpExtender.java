@@ -73,20 +73,21 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 		/* 右侧添加按钮 */
 		JButton load = new JButton(" Load ");
 		load.setBounds(0,0,300,50);
-		load.addActionListener(new loadButton(jTable));		
+		load.addActionListener(new loadButton());		
 		
 		JButton delete = new JButton("Delete");
 		delete.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e) {
 				int[] rmi = jTable.getSelectedRows();
 				for (int i=rmi.length-1; i>=0; i--){
+					System.out.println(rmi[i]);
 					jTableModel.removeRow(rmi[i]);
 				}
 			}
 		});
 
 		JButton save = new JButton(" Save ");
-		save.addActionListener(new saveButton(jTable));
+		save.addActionListener(new saveButton());
 				
 		JButton clean = new JButton(" Clean");
 		clean.addActionListener(new ActionListener(){
@@ -125,7 +126,7 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 		
 		/* 右侧添加输入框对应的Add按钮 */
 		JButton add = new JButton("  Add  ");
-		add.addActionListener(new addButton(jIpText, jPortText, jTable));
+		add.addActionListener(new addButton(jIpText, jPortText));
 		VerticalRight.add(Box.createVerticalStrut(40));
 		VerticalRight.add(add);
 		VerticalRight.add(Box.createVerticalGlue());
@@ -160,12 +161,10 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 	}
 	
 	class addButton implements ActionListener{
-		JTableX jTable;
 		JTextField jIpText;
 		JTextField jPortText;
 		
-		addButton(JTextField jIpText, JTextField jPortText, JTableX jTable){
-			this.jTable = jTable;
+		addButton(JTextField jIpText, JTextField jPortText){
 			this.jIpText = jIpText;
 			this.jPortText = jPortText;
 		}
@@ -182,11 +181,7 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 	}
 	
 	class saveButton implements ActionListener{
-		JTableX jTable;
 		
-		saveButton(JTableX jTable){
-			this.jTable = jTable;
-		}
 		@Override
 		public void actionPerformed(ActionEvent event) {
 			JFileChooser dlg = new JFileChooser();
@@ -213,11 +208,6 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 	}
 	
 	class loadButton implements ActionListener{
-		JTableX jTable;
-		
-		loadButton(JTableX jTable){
-			this.jTable = jTable;
-		}
 		
 		@Override
 		public void actionPerformed(ActionEvent event){
@@ -273,8 +263,7 @@ public class BurpExtender implements ITab, IBurpExtender, IHttpListener {
 					messageInfo.setHttpService(
 						helpers.buildHttpService(jTableModel.getValueAt(num, 0).toString().trim(),
 												 Integer.parseInt(jTableModel.getValueAt(num, 1).toString().trim()),
-												 messageInfo.getHttpService().getProtocol() 
-												) 
+												 messageInfo.getHttpService().getProtocol() ) 
 					);
 			}
 		}
@@ -306,11 +295,14 @@ class JTableX extends JTable{
 		if(MODE == MODE_SERIAL){
 			// MODE_SERIAL
 			return serial = (serial + 1) % this.getRowCount();
-		} else{
+		} 
+		if(MODE == MODE_DISCRETE){
 			// MODE_DISCRETE
 			return (int)(Math.random() * this.getRowCount());
 		}
-	}
-	
+		
+		// default return
+		return (int)(Math.random() * this.getRowCount());
+	}	
 }
 
